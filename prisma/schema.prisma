@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String   @id @default(uuid())
+  // id Int @id @default(autoincrement())
+  name     String   @db.VarChar(255)
+  email    String   @unique
+  photo    String?  @default("default.png")
+  verified Boolean? @default(false)
+
+  password  String
+  role      RoleEnumType? @default(user)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  provider  String?
+
+  writtenPosts  Post[] @relation("writtenPosts")
+  favoritePosts Post[] @relation("favoritePosts")
+
+  userPreference   UserPreference? @relation(fields: [userPreferenceId], references: [id])
+  userPreferenceId String?         @unique
+
+  @@map(name: "users")
+}
+
+enum RoleEnumType {
+  user
+  admin
+}
+
+model UserPreference {
+  id           String  @id @default(uuid())
+  emailUpdates Boolean @default(false)
+  user         User?
+  preference   String
+
+  @@map(name: "userpreferences")
+}
+
+model Post {
+  id            String   @id @default(uuid())
+  title         String   @db.VarChar(255)
+  content       String
+  image         String
+  published     Boolean  @default(false)
+  authorId      String
+  favoritedById String?
+  author        User     @relation("writtenPosts", fields: [authorId], references: [id])
+  favoritedBy   User?    @relation("favoritePosts", fields: [favoritedById], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  categories Category[]
+
+  @@map(name: "posts")
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  tilte     String   @db.VarChar(255)
+  slug      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  posts Post[]
+
+  @@map(name: "categories")
+}
+
+
+
+
+
